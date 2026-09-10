@@ -1,0 +1,6 @@
+{
+  "name": "FilmyTV",
+  "description": "Official mobile application for FilmyTV streaming movies, short films, and original shows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cinematic_background">#0D0714</color>
+    <color name="cinematic_surface">#1A1024</color>
+    <color name="cinematic_primary">#E50914</color>
+    <color name="cinematic_accent">#9C27B0</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0A8BA</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

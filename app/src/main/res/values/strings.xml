@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">FilmyTV</string>
+    <string name="website_url">https://filmytv.webapps.in.net/</string>
+    <string name="offline_title">No Internet Connection</string>
+    <string name="offline_message">Please check your mobile data or Wi-Fi network and try again to continue streaming.</string>
+    <string name="retry">Try Again</string>
+    <string name="download_started">Download started…</string>
+    <string name="download_failed">Download could not be started</string>
+    <string name="choose_file">Select file to upload</string>
+    <string name="camera_permission_required">Camera permission is required to capture photos for upload.</string>
+</resources>
