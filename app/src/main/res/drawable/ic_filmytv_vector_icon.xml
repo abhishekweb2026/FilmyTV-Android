@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.105"
+        android:scaleY="0.105"
+        android:translateX="0"
+        android:translateY="0">
+        <!-- Background circular badge in deep cinematic dark -->
+        <path
+            android:fillColor="#0D0714"
+            android:pathData="M512,64 C264.6,64 64,264.6 64,512 C64,759.4 264.6,960 512,960 C759.4,960 960,759.4 960,512 C960,264.6 759.4,64 512,64 Z" />
+        <!-- Glowing gradient border -->
+        <path
+            android:fillColor="#E50914"
+            android:pathData="M512,96 C741.8,96 928,282.2 928,512 C928,741.8 741.8,928 512,928 C282.2,928 96,741.8 96,512 C96,282.2 282.2,96 512,96 Z M512,128 C300,128 128,300 128,512 C128,724 300,896 512,896 C724,896 896,724 896,512 C896,300 724,128 512,128 Z" />
+        <!-- Stylized "F" cinema shape in primary Red -->
+        <path
+            android:fillColor="#E50914"
+            android:pathData="M340,300 L680,300 C702,300 720,318 720,340 C720,362 702,380 680,380 L420,380 L420,470 L640,470 C662,470 680,488 680,510 C680,532 662,550 640,550 L420,550 L420,720 C420,742 402,760 380,760 C358,760 340,742 340,720 Z" />
+        <!-- Play button triangle emblem in vibrant accent -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M540,580 L690,665 C706,674 706,698 690,707 L540,792 C524,801 504,789 504,771 L504,601 C504,583 524,571 540,580 Z" />
+    </group>
+</vector>

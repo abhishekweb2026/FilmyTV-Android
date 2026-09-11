@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -55,6 +57,7 @@ import com.example.ui.theme.FilmyRed
 import com.example.util.NetworkUtils
 import com.example.webview.FilmyTVWebChromeClient
 import com.example.webview.FilmyTVWebViewClient
+import kotlinx.coroutines.delay
 
 @Composable
 fun FilmyTVScreen(
@@ -69,11 +72,23 @@ fun FilmyTVScreen(
   val context = LocalContext.current
   val activity = context as? Activity
 
+  val isOnline = remember { NetworkUtils.isNetworkAvailable(context) }
   var webViewInstance by remember { mutableStateOf<WebView?>(null) }
-  var isLoading by remember { mutableStateOf(true) }
+  var isLoading by remember { mutableStateOf(isOnline) }
   var progressValue by remember { mutableFloatStateOf(0f) }
   var hasNetworkError by remember { mutableStateOf(false) }
   var failingUrl by remember { mutableStateOf<String?>(null) }
+
+  // Offline detection safeguard: If offline and no cached page renders, show offline screen promptly
+  LaunchedEffect(isOnline) {
+    if (!isOnline) {
+      delay(1200)
+      if (isLoading && webViewInstance?.url == null) {
+        hasNetworkError = true
+        isLoading = false
+      }
+    }
+  }
 
   // Fullscreen video state
   var customView by remember { mutableStateOf<View?>(null) }
@@ -109,7 +124,7 @@ fun FilmyTVScreen(
   }
 
   // Manage activity lifecycle for WebView pause/resume
-  DisposableEffect(webViewInstance) {
+  DisposableEffect(Unit) {
     onDispose {
       webViewInstance?.apply {
         stopLoading()
@@ -154,6 +169,8 @@ fun FilmyTVScreen(
               isFocusableInTouchMode = true
               scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
               isScrollbarFadingEnabled = true
+              // Use default layer type to avoid Mesa DRI rendernode allocation errors in virtualized environments
+              setLayerType(View.LAYER_TYPE_NONE, null)
               setBackgroundColor(android.graphics.Color.parseColor("#0D0714"))
 
               // Configure WebView Settings
@@ -161,10 +178,18 @@ fun FilmyTVScreen(
                 javaScriptEnabled = true
                 domStorageEnabled = true
                 databaseEnabled = true
-                cacheMode = WebSettings.LOAD_DEFAULT
+                cacheMode = if (NetworkUtils.isNetworkAvailable(ctx)) {
+                  WebSettings.LOAD_DEFAULT
+                } else {
+                  WebSettings.LOAD_CACHE_ELSE_NETWORK
+                }
                 allowFileAccess = true
                 allowContentAccess = true
                 mediaPlaybackRequiresUserGesture = false
+
+                // High-performance page rendering optimizations
+                loadsImagesAutomatically = true
+                blockNetworkImage = false
 
                 // Responsive mobile layout rules
                 loadWithOverviewMode = true
@@ -177,12 +202,12 @@ fun FilmyTVScreen(
                 javaScriptCanOpenWindowsAutomatically = true
                 setSupportMultipleWindows(true)
 
-                // HTTPS Security
-                mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                // HTTPS & Mixed Content
+                mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
 
-                // Custom User Agent identifying FilmyTV app
+                // Clean User Agent compatible with Cloudflare & modern streaming
                 val defaultUa = userAgentString
-                userAgentString = "$defaultUa FilmyTVApp/1.0"
+                userAgentString = "$defaultUa Mobile"
               }
 
               // Cookie Configuration
@@ -199,8 +224,14 @@ fun FilmyTVScreen(
               webViewClient = FilmyTVWebViewClient(
                 context = ctx,
                 onPageStartedCallback = {
-                  isLoading = true
+                  if (progressValue < 0.7f) {
+                    isLoading = true
+                  }
                   hasNetworkError = false
+                },
+                onPageCommitVisibleCallback = {
+                  // The earliest moment content is visually committed to screen
+                  isLoading = false
                 },
                 onPageFinishedCallback = {
                   isLoading = false
@@ -217,7 +248,7 @@ fun FilmyTVScreen(
               webChromeClient = FilmyTVWebChromeClient(
                 onProgressChangedCallback = { progress ->
                   progressValue = progress / 100f
-                  if (progress >= 100) {
+                  if (progress >= 70) {
                     isLoading = false
                   }
                 },
@@ -245,14 +276,21 @@ fun FilmyTVScreen(
               webViewInstance = this
             }
           },
+          update = { webView ->
+            webViewInstance = webView
+            webView.onResume()
+            if (webView.url == null) {
+              webView.loadUrl(websiteUrl)
+            }
+          },
           modifier = Modifier
             .fillMaxSize()
             .testTag("webview_container")
         )
 
-        // Loading Progress Bar
+        // Sleek hairline progress bar (auto-hides as soon as page renders)
         AnimatedVisibility(
-          visible = isLoading && progressValue < 1f && !hasNetworkError,
+          visible = isLoading && progressValue in 0.05f..0.7f && !hasNetworkError,
           enter = fadeIn(),
           exit = fadeOut(),
           modifier = Modifier.align(Alignment.TopCenter)
@@ -260,10 +298,10 @@ fun FilmyTVScreen(
           LinearProgressIndicator(
             progress = { progressValue },
             color = FilmyRed,
-            trackColor = FilmyDarkBg,
+            trackColor = Color.Transparent,
             modifier = Modifier
               .fillMaxWidth()
-              .height(3.dp)
+              .height(2.dp)
               .testTag("loading_progress_bar")
           )
         }

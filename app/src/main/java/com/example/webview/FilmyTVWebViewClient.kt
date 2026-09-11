@@ -22,6 +22,7 @@ class FilmyTVWebViewClient(
   private val context: Context,
   private val onPageStartedCallback: (url: String?) -> Unit,
   private val onPageFinishedCallback: (url: String?) -> Unit,
+  private val onPageCommitVisibleCallback: (url: String?) -> Unit = {},
   private val onErrorCallback: (failingUrl: String?) -> Unit
 ) : WebViewClient() {
 
@@ -195,6 +196,11 @@ class FilmyTVWebViewClient(
   override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
     super.onPageStarted(view, url, favicon)
     onPageStartedCallback(url)
+  }
+
+  override fun onPageCommitVisible(view: WebView?, url: String?) {
+    super.onPageCommitVisible(view, url)
+    onPageCommitVisibleCallback(url)
   }
 
   override fun onPageFinished(view: WebView?, url: String?) {

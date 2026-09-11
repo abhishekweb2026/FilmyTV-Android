@@ -2,7 +2,7 @@
 <resources>
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/cinematic_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_filmytv_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_filmytv_vector_icon</item>
         <item name="windowSplashScreenAnimationDuration">500</item>
         <item name="postSplashScreenTheme">@style/Theme.FilmyTV</item>
     </style>
