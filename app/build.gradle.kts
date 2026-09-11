@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Base64
 
 plugins {
   alias(libs.plugins.android.application)
@@ -23,6 +24,32 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  val debugKeystoreFile = file("${rootDir}/debug.keystore")
+  if (!debugKeystoreFile.exists()) {
+    val base64KeystoreFile = file("${rootDir}/debug.keystore.base64")
+    if (base64KeystoreFile.exists()) {
+      try {
+        val decoded = Base64.getDecoder().decode(base64KeystoreFile.readText().trim())
+        debugKeystoreFile.writeBytes(decoded)
+      } catch (_: Exception) {}
+    }
+    if (!debugKeystoreFile.exists()) {
+      try {
+        ProcessBuilder(
+          "keytool", "-genkeypair",
+          "-alias", "androiddebugkey",
+          "-keypass", "android",
+          "-keystore", debugKeystoreFile.absolutePath,
+          "-storepass", "android",
+          "-dname", "CN=Android Debug,O=Android,C=US",
+          "-keyalg", "RSA",
+          "-keysize", "2048",
+          "-validity", "10000"
+        ).start().waitFor()
+      } catch (_: Exception) {}
+    }
+  }
+
   signingConfigs {
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
@@ -32,7 +59,7 @@ android {
       keyPassword = System.getenv("KEY_PASSWORD")
     }
     create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
+      storeFile = if (debugKeystoreFile.exists()) debugKeystoreFile else file("${rootDir}/debug.keystore")
       storePassword = "android"
       keyAlias = "androiddebugkey"
       keyPassword = "android"
@@ -46,7 +73,13 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug {
+      signingConfig = if (debugKeystoreFile.exists()) {
+        signingConfigs.getByName("debugConfig")
+      } else {
+        signingConfigs.getByName("debug")
+      }
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
